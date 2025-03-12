@@ -42,14 +42,15 @@
 
         .clear-button {
             margin-left: 20px; /* Space from the header text */
-            padding: 8px 12px;
+            padding: 7px 7px;
             background-color: #dc3545; /* Red color for clear button */
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 45px;
             cursor: pointer;
             font-weight: 600;
             font-size: 16px;
+            width: 220px;
         }
 
         .clear-button:hover {
@@ -64,6 +65,7 @@
         .table-container {
             flex-grow: 1;
             overflow-y: auto; /* Make the table container scrollable */
+            max-height: 60vh; /* Limit the height of the table container */
         }
 
         .attendance-table {
@@ -112,7 +114,11 @@
             <label for="sectionSelect">Select Section:</label>
             <select id="sectionSelect" onchange="fetchSectionAttendance()">
                 <option value="">-- Select Section --</option>
-                <!-- Options will be populated here -->
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="C">C</option>
+                <option value="D">D</option>
+                <option value="E">E</option>
             </select>
         </div>
         <div class="table-container">
@@ -135,7 +141,7 @@
     <script type="module">
         // Import the functions you need from the SDKs you need
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-        import { getDatabase, ref, get, child, query, orderByChild, equalTo, set } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+        import { getDatabase, ref, get, query, orderByChild, equalTo, set } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
 
         // Your web app's Firebase configuration
         const firebaseConfig = {
@@ -153,33 +159,6 @@
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
 
-        // Function to get data from Firebase
-        async function getData(path) {
-            const dbRef = ref(database);
-            const snapshot = await get(child(dbRef, path));
-            return snapshot.exists() ? snapshot.val() : [];
-        }
-
-        // Function to fetch section names from the database
-        async function fetchSections() {
-            const sectionsRef = ref(database, 'sections'); // Adjust the path as necessary
-            try {
-                const snapshot = await get(sectionsRef);
-                if (snapshot.exists()) {
-                    const sectionsData = snapshot.val();
-                    const sectionSelect = document.getElementById('sectionSelect');
-                    for (const section in sectionsData) {
-                        const option = document.createElement('option');
-                        option.value = section;
-                        option.textContent = sectionsData[section].name; // Adjust based on your data structure
-                        sectionSelect.appendChild(option);
-                    }
-                }
-            } catch (error) {
-                console.error('Error fetching sections:', error);
-            }
-        }
-
         // Function to fetch attendance data for the selected section
         async function fetchSectionAttendance() {
             const selectedSection = document.getElementById('sectionSelect').value;
@@ -187,28 +166,38 @@
             attendanceTableBody.innerHTML = ''; // Clear previous data
 
             if (selectedSection) {
-                // Fetch attendance data for the selected section
-                const attendanceRef = ref(database, 'attendanceData'); // Adjust the path as necessary
-                const attendanceQuery = query(attendanceRef, orderByChild('section'), equalTo(selectedSection));
                 try {
-                    const snapshot = await get(attendanceQuery);
-                    if (snapshot.exists()) {
-                        const attendanceData = snapshot.val();
-                        for (const key in attendanceData) {
-                            const record = attendanceData[key];
-                            const row = document.createElement('tr');
-                            const statusClass = record.status === 'Present' ? 'status-present' : 'status-absent';
-                            row.innerHTML = `
-                                <td>${record.rollNumber}</td>
-                                <td>${record.period}</td>
-                                <td>${record.subject}</td>
-                                <td>${record.date}</td>
-                                <td class="${statusClass}">${record.status}</td>
-                            `;
-                            attendanceTableBody.appendChild(row);
+                    const attendanceRef = ref(database, 'attendanceData');
+                    const studentsRef = ref(database, 'students');
+                    const [attendanceSnapshot, studentsSnapshot] = await Promise.all([get(attendanceRef), get(studentsRef)]);
+
+                    if (attendanceSnapshot.exists() && studentsSnapshot.exists()) {
+                        const attendanceData = attendanceSnapshot.val();
+                        const studentsData = studentsSnapshot.val();
+
+                        const filteredData = Object.values(attendanceData).filter(record => {
+                            const student = Object.values(studentsData).find(student => student.rollNumber === record.rollNumber);
+                            return student && student.section === selectedSection;
+                        });
+
+                        if (filteredData.length > 0) {
+                            filteredData.forEach(record => {
+                                const row = document.createElement('tr');
+                                const statusClass = record.status === 'Present' ? 'status-present' : 'status-absent';
+                                row.innerHTML = `
+                                    <td>${record.rollNumber}</td>
+                                    <td>${record.period}</td>
+                                    <td>${record.subject}</td>
+                                    <td>${record.date}</td>
+                                    <td class="${statusClass}">${record.status}</td>
+                                `;
+                                attendanceTableBody.appendChild(row);
+                            });
+                        } else {
+                            console.log('No attendance data found for this section.');
                         }
                     } else {
-                        console.log('No attendance data found for this section.');
+                        console.log('No attendance data found.');
                     }
                 } catch (error) {
                     console.error('Error fetching attendance data:', error);
@@ -228,10 +217,28 @@
             }
         }
 
+        // Expose functions to the global scope
+        window.fetchSectionAttendance = fetchSectionAttendance;
+        window.clearAttendanceData = clearAttendanceData;
+
         // Call fetchSections when the page loads
         document.addEventListener('DOMContentLoaded', () => {
-            fetchSections(); // Fetch sections to populate the dropdown
+            // Sections are hardcoded in the HTML, no need to fetch them
         });
+        document.addEventListener('DOMContentLoaded', () => {
+        const authenticated = sessionStorage.getItem('authenticated');
+        const role = sessionStorage.getItem('role');
+
+        if (!authenticated || !role) {
+            alert('You are not authorized to view this page. Please log in.');
+            window.location.href = 'index.html';
+        }
+    });
+    document.addEventListener('contextmenu', function(event) {
+
+event.preventDefault();
+
+});
     </script>
 </body>
 </html>
