@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manage Users - AMS</title>
+    <link rel="icon" href="https://img.icons8.com/stencil/32/checkmark.png" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            flex-direction: column;
+        }
+
+        .manage-users-container {
+            background: #fff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 1200px;
+            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            box-sizing: border-box;
+            height: 90vh; /* Set a fixed height */
+            overflow-y: hidden; /* Prevent the container from scrolling */
+        }
+
+        .form-container {
+            width: 48%;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            background: #f9f9f9;
+            box-sizing: border-box;
+            position: sticky; /* Make it sticky */
+            top: 0; /* Stick to the top */
+            height: 100%; /* Ensure the form container takes full height */
+            overflow-y: auto; /* Make the form container scrollable */
+        }
+
+        .manage-users-container h1 {
+            margin-bottom: 20px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            background: #fff;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
+        }
+
+        .submit-button {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s ease;
+        }
+
+        .submit-button i {
+            margin-right: 8px;
+        }
+
+        .submit-button:hover {
+            background-color: #0056b3;
+        }
+
+        .user-list {
+            margin-top: 20px;
+            text-align: left;
+            max-height: 300px; /* Set a fixed height for the list */
+            overflow-y: auto; /* Make it scrollable */
+        }
+
+        .user-list h2 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .user-list ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .user-list li {
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-list button {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            padding: 5px 10px;
+            transition: background-color 0.3s ease;
+        }
+
+        .user-list button:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <div class="manage-users-container">
+        <div class="form-container">
+            <h1>Manage Students</h1>
+            <form id="studentForm">
+                <div class="form-group">
+                    <label for="studentName">Student Name</label>
+                    <input type="text" id="studentName" name="studentName" required>
+                </div>
+                <div class="form-group">
+                    <label for="rollNumber">Roll Number</label>
+                    <div style="display: flex; align-items: center;">
+                        <span style="flex-shrink: 0;">251FA04</span>
+                        <input type="text" id="rollNumber" name="rollNumber" maxlength="3" required style="flex-grow: 1; margin-left: 5px;">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="section">Section</label>
+                    <select id="section" name="section" required>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                        <option value="D">D</option>
+                        <option value="E">E</option>
+                    </select>
+                </div>
+                <button type="submit" class="submit-button"><i class="fas fa-save"></i> Save Student</button>
+            </form>
+            <div class="user-list">
+                <h2>Student List</h2>
+                <div class="form-group" style="display: flex; gap: 10px;">
+                    <div style="flex-grow: 1;">
+                        <label for="filterSection">Filter by Section</label>
+                        <select id="filterSection" name="filterSection" style="width: 100%;" onchange="filterStudents()">
+                            <option value="">All Sections</option>
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                            <option value="D">D</option>
+                            <option value="E">E</option>
+                        </select>
+                    </div>
+                    <div style="flex-grow: 1;">
+                        <label for="searchRollNumber">Search by Roll Number</label>
+                        <input type="text" id="searchRollNumber" name="searchRollNumber" placeholder="Enter Roll Number" oninput="filterStudents()">
+                    </div>
+                </div>
+                <ul id="studentList"></ul>
+            </div>
+        </div>
+        <div class="form-container">
+            <h1>Manage Faculty</h1>
+            <form id="facultyForm">
+                <div class="form-group">
+                    <label for="facultyName">Faculty Name</label>
+                    <input type="text" id="facultyName" name="facultyName" required>
+                </div>
+                <div class="form-group">
+                    <label for="facultyId">Faculty ID</label>
+                    <input type="text" id="facultyId" name="facultyId" required>
+                </div>
+                <button type="submit" class="submit-button"><i class="fas fa-save"></i> Save Faculty</button>
+            </form>
+            <div class="user-list">
+                <h2>Faculty List</h2>
+                <ul id="facultyList"></ul>
+            </div>
+        </div>
+    </div>
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+        import { getDatabase, ref, get, set, child, remove } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDHD1hv7mERPzWNkStnJ9eKI7HquS05Deo",
+            authDomain: "attendance-management-system-v.firebaseapp.com",
+            projectId: "attendance-management-system-v",
+            storageBucket: "attendance-management-system-v.appspot.com",
+            messagingSenderId: "446562547736",
+            appId: "1:446562547736:web:85dcee5d92ea727acf6b6d",
+            measurementId: "G-VYFNPC5XFL"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Function to get data from Firebase
+        async function getData(path) {
+            const dbRef = ref(database);
+            const snapshot = await get(child(dbRef, path));
+            return snapshot.exists() ? snapshot.val() : [];
+        }
+
+        // Function to set data to Firebase
+        async function setData(path, data) {
+            const dbRef = ref(database, path);
+            await set(dbRef, data);
+        }
+
+        // Function to remove data from Firebase
+        async function removeData(path) {
+            const dbRef = ref(database, path);
+            await remove(dbRef);
+        }
+
+        // Expose functions to the global scope
+        window.removeStudent = removeStudent;
+        window.removeFaculty = removeFaculty;
+        window.filterStudents = filterStudents;
+
+        document.getElementById('studentForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const studentName = document.getElementById('studentName').value;
+            const rollNumberSuffix = document.getElementById('rollNumber').value;
+            const rollNumber = `251FA04${rollNumberSuffix}`;
+            const section = document.getElementById('section').value;
+            const students = await getData('students');
+
+            const existingStudentIndex = students.findIndex(student => student.rollNumber === rollNumber);
+            if (existingStudentIndex !== -1) {
+                students[existingStudentIndex] = { studentName, rollNumber, section };
+            } else {
+                students.push({ studentName, rollNumber, section });
+            }
+
+            await setData('students', students);
+            document.getElementById('studentForm').reset();
+            displayStudents();
+        });
+
+        document.getElementById('facultyForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const facultyName = document.getElementById('facultyName').value;
+            const facultyId = document.getElementById('facultyId').value;
+            const faculties = await getData('faculties');
+
+            const existingFacultyIndex = faculties.findIndex(faculty => faculty.facultyId === facultyId);
+            if (existingFacultyIndex !== -1) {
+                faculties[existingFacultyIndex] = { facultyName, facultyId };
+            } else {
+                faculties.push({ facultyName, facultyId });
+            }
+
+            await setData('faculties', faculties);
+            document.getElementById('facultyForm').reset();
+            displayFaculties();
+        });
+
+        async function displayStudents() {
+            const students = await getData('students');
+            const studentList = document.getElementById('studentList');
+            studentList.innerHTML = '';
+
+            students.forEach(student => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    ${student.studentName} (${student.rollNumber}) - Section ${student.section}
+                    <button onclick="removeStudent('${student.rollNumber}')">Remove</button>
+                `;
+                studentList.appendChild(li);
+            });
+        }
+
+        async function displayFaculties() {
+            const faculties = await getData('faculties');
+            const facultyList = document.getElementById('facultyList');
+            facultyList.innerHTML = '';
+
+            faculties.forEach(faculty => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    ${faculty.facultyName} (${faculty.facultyId})
+                    <button onclick="removeFaculty('${faculty.facultyId}')">Remove</button>
+                `;
+                facultyList.appendChild(li);
+            });
+        }
+
+        async function removeStudent(rollNumber) {
+            let students = await getData('students');
+            students = students.filter(student => student.rollNumber !== rollNumber);
+            await setData('students', students);
+            displayStudents();
+        }
+
+        async function removeFaculty(facultyId) {
+            let faculties = await getData('faculties');
+            faculties = faculties.filter(faculty => faculty.facultyId !== facultyId);
+            await setData('faculties', faculties);
+            displayFaculties();
+        }
+
+        async function filterStudents() {
+            const selectedSection = document.getElementById('filterSection').value;
+            const searchRollNumber = document.getElementById('searchRollNumber').value.toLowerCase();
+            const students = await getData('students');
+            const studentList = document.getElementById('studentList');
+            studentList.innerHTML = '';
+
+            students.forEach(student => {
+                if ((!selectedSection || student.section === selectedSection) &&
+                    (!searchRollNumber || student.rollNumber.toLowerCase().includes(searchRollNumber))) {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        ${student.studentName} (${student.rollNumber}) - Section ${student.section}
+                        <button onclick="removeStudent('${student.rollNumber}')">Remove</button>
+                    `;
+                    studentList.appendChild(li);
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            displayStudents();
+            displayFaculties();
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const authenticated = sessionStorage.getItem('authenticated');
+            const role = sessionStorage.getItem('role');
+
+            if (!authenticated || !role) {
+                alert('You are not authorized to view this page. Please log in.');
+                window.location.href = 'index.html';
+            }
+        });
+
+        document.addEventListener('contextmenu', function(event) {
+            event.preventDefault();
+        });
+    </script>
+</body>
+</html>

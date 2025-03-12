@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Attendance - AMS</title>
+    <link rel="icon" href="https://img.icons8.com/stencil/32/checkmark.png" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            flex-direction: column;
+        }
+
+        .attendance-container {
+            background: #fff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 1200px;
+            margin: 50px auto;
+            text-align: center;
+            height: auto; /* Adjust height to fit content */
+            display: flex;
+            flex-direction: column;
+        }
+
+        .attendance-container h1 {
+            margin-bottom: 20px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .clear-button {
+            margin-left: 20px; /* Space from the header text */
+            padding: 8px 12px;
+            background-color: #dc3545; /* Red color for clear button */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .clear-button:hover {
+            background-color: #c82333; /* Darker red on hover */
+        }
+
+        .section-select-container {
+            margin-top: 20px; /* Space above the select section */
+            text-align: left; /* Align text to the left */
+        }
+
+        .table-container {
+            flex-grow: 1;
+            overflow-y: auto; /* Make the table container scrollable */
+        }
+
+        .attendance-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .attendance-table th, .attendance-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .attendance-table th {
+            background-color: #007bff;
+            color: white;
+            font-weight: 600;
+            position: sticky;
+            top: 0; /* Make the table headers sticky */
+            z-index: 1;
+        }
+
+        .attendance-table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        .attendance-table tr:hover {
+            background-color: #ddd;
+        }
+
+        .status-present {
+            background-color: #d4edda; /* Light green */
+        }
+
+        .status-absent {
+            background-color: #f8d7da; /* Light red */
+        }
+    </style>
+</head>
+<body>
+    <div class="attendance-container">
+        <h1><i class="fas fa-calendar-check"></i> Attendance Details</h1>
+        <button class="clear-button" onclick="clearAttendanceData()">Clear Attendance Data</button>
+        <div class="section-select-container">
+            <label for="sectionSelect">Select Section:</label>
+            <select id="sectionSelect" onchange="fetchSectionAttendance()">
+                <option value="">-- Select Section --</option>
+                <!-- Options will be populated here -->
+            </select>
+        </div>
+        <div class="table-container">
+            <table class="attendance-table">
+                <thead>
+                    <tr>
+                        <th>Roll Number</th>
+                        <th>Period</th>
+                        <th>Subject</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="attendanceTableBody">
+                    <!-- Attendance data will be dynamically inserted here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+        import { getDatabase, ref, get, child, query, orderByChild, equalTo, set } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDHD1hv7mERPzWNkStnJ9eKI7HquS05Deo",
+            authDomain: "attendance-management-system-v.firebaseapp.com",
+            projectId: "attendance-management-system-v",
+            storageBucket: "attendance-management-system-v.appspot.com",
+            messagingSenderId: "446562547736",
+            appId: "1:446562547736:web:85dcee5d92ea727acf6b6d",
+            measurementId: "G-VYFNPC5XFL",
+            databaseURL: "https://attendance-management-system-v-default-rtdb.firebaseio.com/" // Ensure this is correct
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Function to get data from Firebase
+        async function getData(path) {
+            const dbRef = ref(database);
+            const snapshot = await get(child(dbRef, path));
+            return snapshot.exists() ? snapshot.val() : [];
+        }
+
+        // Function to fetch section names from the database
+        async function fetchSections() {
+            const sectionsRef = ref(database, 'sections'); // Adjust the path as necessary
+            try {
+                const snapshot = await get(sectionsRef);
+                if (snapshot.exists()) {
+                    const sectionsData = snapshot.val();
+                    const sectionSelect = document.getElementById('sectionSelect');
+                    for (const section in sectionsData) {
+                        const option = document.createElement('option');
+                        option.value = section;
+                        option.textContent = sectionsData[section].name; // Adjust based on your data structure
+                        sectionSelect.appendChild(option);
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching sections:', error);
+            }
+        }
+
+        // Function to fetch attendance data for the selected section
+        async function fetchSectionAttendance() {
+            const selectedSection = document.getElementById('sectionSelect').value;
+            const attendanceTableBody = document.getElementById('attendanceTableBody');
+            attendanceTableBody.innerHTML = ''; // Clear previous data
+
+            if (selectedSection) {
+                // Fetch attendance data for the selected section
+                const attendanceRef = ref(database, 'attendanceData'); // Adjust the path as necessary
+                const attendanceQuery = query(attendanceRef, orderByChild('section'), equalTo(selectedSection));
+                try {
+                    const snapshot = await get(attendanceQuery);
+                    if (snapshot.exists()) {
+                        const attendanceData = snapshot.val();
+                        for (const key in attendanceData) {
+                            const record = attendanceData[key];
+                            const row = document.createElement('tr');
+                            const statusClass = record.status === 'Present' ? 'status-present' : 'status-absent';
+                            row.innerHTML = `
+                                <td>${record.rollNumber}</td>
+                                <td>${record.period}</td>
+                                <td>${record.subject}</td>
+                                <td>${record.date}</td>
+                                <td class="${statusClass}">${record.status}</td>
+                            `;
+                            attendanceTableBody.appendChild(row);
+                        }
+                    } else {
+                        console.log('No attendance data found for this section.');
+                    }
+                } catch (error) {
+                    console.error('Error fetching attendance data:', error);
+                }
+            }
+        }
+
+        // Function to clear all attendance data in the database
+        async function clearAttendanceData() {
+            const attendanceRef = ref(database, 'attendanceData'); // Adjust the path as necessary
+            try {
+                await set(attendanceRef, null); // Clear all data
+                alert('All attendance data has been cleared.');
+                document.getElementById('attendanceTableBody').innerHTML = ''; // Clear the displayed data
+            } catch (error) {
+                console.error('Error clearing attendance data:', error);
+            }
+        }
+
+        // Call fetchSections when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchSections(); // Fetch sections to populate the dropdown
+        });
+    </script>
+</body>
+</html>

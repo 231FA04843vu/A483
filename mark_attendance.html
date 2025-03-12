@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mark Attendance</title>
+    <link rel="icon" href="https://img.icons8.com/stencil/32/checkmark.png" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            flex-direction: column;
+        }
+
+        .attendance-container {
+            background: #fff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 1200px;
+            text-align: center;
+            height: 90vh;
+            overflow-y: auto;
+        }
+
+        .attendance-container h1 {
+            margin-bottom: 20px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 10px;
+            text-align: left;
+            display: inline-block;
+            width: 22%;
+            margin-right: 2%;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .form-group input[type="date"] {
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .attendance-button {
+            width: 30%;
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+
+        .attendance-button:hover {
+            background-color: #0056b3;
+        }
+
+        .roll-numbers-container {
+            display: none;
+            width: 100%;
+            height: 100vh;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: #fff;
+            padding: 30px;
+            box-sizing: border-box;
+        }
+
+        .roll-numbers {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 10px;
+            height: calc(100vh - 150px);
+            overflow-y: auto;
+        }
+
+        .roll-number {
+            display: flex;
+            align-items: center;
+        }
+
+        .roll-number input[type="checkbox"] {
+            margin-right: 10px;
+            width: 20px;
+            height: 20px;
+            accent-color: #007bff;
+        }
+
+        .submit-button {
+            width: 30%;
+            padding: 12px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+
+        .submit-button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="attendance-container" id="attendanceContainer">
+        <h1>Mark Attendance</h1>
+        <div class="form-group">
+            <label for="subject">Subject</label>
+            <select id="subject" name="subject" required>
+                <option value="DAA">DAA</option>
+                <option value="OS">OS</option>
+                <option value="TOC">TOC</option>
+                <option value="COA">COA</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="period">Period</label>
+            <select id="period" name="period" required>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="date">Date</label>
+            <input type="date" id="date" name="date" required>
+        </div>
+        <div class="form-group">
+            <label for="section">Section</label>
+            <select id="section" name="section" required>
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="C">C</option>
+                <option value="D">D</option>
+                <option value="E">E</option>
+            </select>
+        </div>
+        <button class="attendance-button" onclick="showRollNumbers()">Enter</button>
+    </div>
+    <div id="rollNumbersContainer" class="roll-numbers-container">
+        <div class="roll-numbers" id="rollNumbers"></div>
+        <button id="submitButton" class="submit-button" onclick="submitAttendance()">Submit</button>
+    </div>
+
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+        import { getDatabase, ref, get, set, child } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDHD1hv7mERPzWNkStnJ9eKI7HquS05Deo",
+            authDomain: "attendance-management-system-v.firebaseapp.com",
+            projectId: "attendance-management-system-v",
+            storageBucket: "attendance-management-system-v.appspot.com",
+            messagingSenderId: "446562547736",
+            appId: "1:446562547736:web:85dcee5d92ea727acf6b6d",
+            measurementId: "G-VYFNPC5XFL"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Function to get data from Firebase
+        async function getData(path) {
+            try {
+                const dbRef = ref(database);
+                const snapshot = await get(child(dbRef, path));
+                if (snapshot.exists()) {
+                    console.log(`Data fetched from ${path}:`, snapshot.val());
+                    return snapshot.val();
+                } else {
+                    console.log(`No data available at ${path}`);
+                    return [];
+                }
+            } catch (error) {
+                console.error(`Error fetching data from ${path}:`, error);
+                return [];
+            }
+        }
+
+        // Function to set data to Firebase
+        async function setData(path, data) {
+            try {
+                const dbRef = ref(database, path);
+                await set(dbRef, data);
+                console.log(`Data set to ${path}:`, data);
+            } catch (error) {
+                console.error(`Error setting data to ${path}:`, error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('date').value = today;
+        });
+
+        async function showRollNumbers() {
+            console.log('showRollNumbers called');
+            const section = document.getElementById('section').value;
+            const students = await getData('students');
+            console.log('students:', students);
+            const rollNumbersContainer = document.getElementById('rollNumbers');
+            rollNumbersContainer.innerHTML = '';
+
+            const sectionStudents = students.filter(student => student.section === section);
+            console.log('sectionStudents:', sectionStudents);
+
+            sectionStudents.forEach(student => {
+                const rollNumberDiv = document.createElement('div');
+                rollNumberDiv.className = 'roll-number';
+                rollNumberDiv.innerHTML = `<input type="checkbox" id="roll${student.rollNumber}" name="roll${student.rollNumber}" checked><label for="roll${student.rollNumber}">${student.rollNumber}</label>`;
+                rollNumbersContainer.appendChild(rollNumberDiv);
+            });
+
+            document.getElementById('attendanceContainer').style.display = 'none';
+            document.getElementById('rollNumbersContainer').style.display = 'block';
+        }
+
+        async function submitAttendance() {
+            const subject = document.getElementById('subject').value;
+            const period = document.getElementById('period').value;
+            const date = document.getElementById('date').value;
+            const rollNumbersContainer = document.getElementById('rollNumbers');
+            const checkboxes = rollNumbersContainer.querySelectorAll('input[type="checkbox"]');
+            const attendanceData = await getData('attendanceData');
+            const totalClassesData = await getData('totalClassesData');
+
+            // Update total classes conducted for the subject
+            if (!totalClassesData[subject]) {
+                totalClassesData[subject] = 0;
+            }
+            totalClassesData[subject] += 1;
+
+            checkboxes.forEach(checkbox => {
+                const rollNumber = checkbox.name.replace('roll', ''); // Ensure roll number is stored correctly
+                const status = checkbox.checked ? 'Present' : 'Absent';
+                attendanceData.push({ rollNumber, subject, period, date, status });
+            });
+
+            await setData('attendanceData', attendanceData);
+            await setData('totalClassesData', totalClassesData);
+            alert('Attendance marked successfully!');
+            location.reload();
+        }
+
+        // Attach functions to the window object to make them accessible in the global scope
+        window.showRollNumbers = showRollNumbers;
+        window.submitAttendance = submitAttendance;
+        
+    document.addEventListener('DOMContentLoaded', () => {
+        const authenticated = sessionStorage.getItem('authenticated');
+        const role = sessionStorage.getItem('role');
+
+        if (!authenticated || !role) {
+            alert('You are not authorized to view this page. Please log in.');
+            window.location.href = 'index.html';
+        }
+    });
+    document.addEventListener('contextmenu', function(event) {
+
+event.preventDefault();
+
+});
+
+    </script>
+</body>
+</html>
