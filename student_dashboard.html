@@ -146,9 +146,32 @@
         .attendance-summary tr:hover {
             background-color: #ddd;
         }
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            font-size: 24px;
+            z-index: 1000; /* Ensure the button is on top */
+        }
+
+        .back-button:hover {
+            background-color: #0056b3;
+        }
     </style>
 </head>
 <body>
+    <button class="back-button" onclick="goBack()"><i class="fas fa-arrow-left"></i></button>
     <div class="dashboard-container">
         <h1 class="dashboard-title"><i class="fas fa-user-graduate"></i> Student Dashboard</h1>
         <div>
@@ -184,6 +207,12 @@
             <p><strong>Total Attendance Percentage:</strong> <span id="totalAttendancePercentage"></span>%</p>
         </div>
     </div>
+    <script>
+        // Define the goBack function
+        function goBack() {
+            window.history.back();
+        }
+        </script>
     <script type="module">
         // Import the functions you need from the SDKs you need
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
