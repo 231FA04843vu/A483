@@ -260,7 +260,7 @@
 
             const sectionStudents = students.filter(student => student.section === section);
             console.log('sectionStudents:', sectionStudents);
-
+            sectionStudents.sort((a, b) => a.rollNumber.localeCompare(b.rollNumber));
             sectionStudents.forEach(student => {
                 const rollNumberDiv = document.createElement('div');
                 rollNumberDiv.className = 'roll-number';
