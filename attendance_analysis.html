@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Analysis - AMS</title>
+    <link rel="icon" href="https://img.icons8.com/stencil/32/checkmark.png" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            font-size: 24px;
+            z-index: 1000; 
+        }
+
+        .back-button:hover {
+            background-color: #0056b3;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            flex-direction: column;
+        }
+
+        .analysis-container {
+            background: #fff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 1200px;
+            text-align: center;
+        }
+
+        .analysis-container h1 {
+            margin-bottom: 20px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .charts-container {
+            display: flex;
+            justify-content: space-around;
+            gap: 20px;
+        }
+
+        .chart-container {
+            width: 45%;
+        }
+    </style>
+</head>
+<body>
+    <button class="back-button" onclick="goBack()"><i class="fas fa-arrow-left"></i></button>
+    <div class="analysis-container">
+        <h1><i class="fas fa-chart-pie"></i> Attendance Analysis</h1>
+        <div class="charts-container">
+            <div class="chart-container">
+                <canvas id="attendancePieChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="attendanceLineChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <script>
+        function goBack() {
+            window.history.back();
+        }
+    </script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+        import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+        const firebaseConfig = {
+            apiKey: "AIzaSyDHD1hv7mERPzWNkStnJ9eKI7HquS05Deo",
+            authDomain: "attendance-management-system-v.firebaseapp.com",
+            projectId: "attendance-management-system-v",
+            storageBucket: "attendance-management-system-v.appspot.com",
+            messagingSenderId: "446562547736",
+            appId: "1:446562547736:web:85dcee5d92ea727acf6b6d",
+            measurementId: "G-VYFNPC5XFL"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        async function getData(path) {
+            const dbRef = ref(database);
+            const snapshot = await get(child(dbRef, path));
+            return snapshot.exists() ? snapshot.val() : [];
+        }
+
+        document.addEventListener('DOMContentLoaded', async (event) => {
+            const attendanceData = await getData('attendanceData');
+            const totalClasses = attendanceData.length;
+            const attendedClasses = attendanceData.filter(record => record.status === 'Present').length;
+            const absentClasses = totalClasses - attendedClasses;
+
+            const pieCtx = document.getElementById('attendancePieChart').getContext('2d');
+            const pieChart = new Chart(pieCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Present', 'Absent'],
+                    datasets: [{
+                        data: [attendedClasses, absentClasses],
+                        backgroundColor: ['#28a745', '#ff6b6b'],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Overall Attendance'
+                        }
+                    }
+                }
+            });
+
+            const subjects = ['DAA', 'OS', 'TOC', 'COA'];
+            const subjectAttendance = subjects.map(subject => {
+                const totalSubjectClasses = attendanceData.filter(record => record.subject === subject).length;
+                const attendedSubjectClasses = attendanceData.filter(record => record.subject === subject && record.status === 'Present').length;
+                return {
+                    subject,
+                    total: totalSubjectClasses,
+                    attended: attendedSubjectClasses
+                };
+            });
+
+            const lineCtx = document.getElementById('attendanceLineChart').getContext('2d');
+            const lineChart = new Chart(lineCtx, {
+                type: 'line',
+                data: {
+                    labels: subjects,
+                    datasets: [{
+                        label: 'Total Classes',
+                        data: subjectAttendance.map(data => data.total),
+                        borderColor: '#007bff',
+                        backgroundColor: '#007bff',
+                        fill: false,
+                    }, {
+                        label: 'Attended Classes',
+                        data: subjectAttendance.map(data => data.attended),
+                        borderColor: '#28a745',
+                        backgroundColor: '#28a745',
+                        fill: false,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Subject-wise Attendance'
+                        }
+                    }
+                }
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const authenticated = sessionStorage.getItem('authenticated');
+            const role = sessionStorage.getItem('role');
+
+            if (!authenticated || !role) {
+                alert('You are not authorized to view this page. Please log in.');
+                window.location.href = 'index.html';
+            }
+        });
+
+        document.addEventListener('contextmenu', function(event) {
+            event.preventDefault();
+        });
+    </script>
+</body>
+</html>

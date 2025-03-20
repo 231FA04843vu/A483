@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard - AMS</title>
+    <link rel="icon" href="https://img.icons8.com/stencil/32/checkmark.png" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            font-size: 24px;
+        }
+
+        .back-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <button class="back-button" onclick="goBack()"><i class="fas fa-arrow-left"></i></button>
+    <div class="dashboard-container">
+        <h1 class="dashboard-title"><i class="fas fa-tachometer-alt"></i> Admin Dashboard</h1>
+        <div class="cards">
+            <div class="card" onclick="window.location.href='manage_users.html'">
+                <h2><i class="fas fa-user"></i> Manage Users</h2>
+                <p>View and manage all users in the system.</p>
+            </div>
+            <div class="card" onclick="window.location.href='view_attendance.html'">
+                <h2><i class="fas fa-calendar-check"></i> Attendance Reports</h2>
+                <p>Generate and view attendance reports.</p>
+            </div>
+            <div class="card" onclick="window.location.href='attendance_analysis.html'">
+                <h2><i class="fas fa-chart-line"></i> Attendance record </h2>
+                <p>Analyze attendance metrics.</p>
+            </div>
+            <div class="card" onclick="window.location.href='report_card.html'">
+                <h2><i class="fas fa-file-alt"></i> View Report Card</h2>
+                <p>View and manage report cards.</p>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const authenticated = sessionStorage.getItem('authenticated');
+            const role = sessionStorage.getItem('role');
+    
+            if (!authenticated || !role) {
+                alert('You are not authorized to view this page. Please log in.');
+                window.location.href = 'index.html';
+            }
+        });
+
+        document.addEventListener('contextmenu', function(event) {
+            event.preventDefault();
+        });
+
+        function goBack() {
+            window.history.back();
+        }
+    </script>
+</body>
+</html>
