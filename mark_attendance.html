@@ -285,7 +285,7 @@
             totalClassesData[subject] += 1;
 
             checkboxes.forEach(checkbox => {
-                const rollNumber = checkbox.name.replace('roll', ''); // Ensure roll number is stored correctly
+                const rollNumber = checkbox.name.replace('roll', ''); 
                 const status = checkbox.checked ? 'Present' : 'Absent';
                 attendanceData.push({ rollNumber, subject, period, date, status });
             });
